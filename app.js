@@ -5,6 +5,11 @@ var express = require("express"),
 	methodOverride = require("method-override");
 	mongoose = require('mongoose');
 
+var models     = require('./models/tvshow')(app, mongoose);
+var TVShowCtrl = require('./controllers/tvshows');
+
+
+
 // Settings:
 //
 // Set the app able to parse JSON
@@ -13,18 +18,32 @@ app.use(bodyParser.json());
 // Set the app able to override HTTP methods
 app.use(methodOverride());
 
+
+
+// DB connection
+mongoose.connect('mongodb://localhost/tvshows', function(err, res) {  
+  if(err) throw wrr;
+  console.log('Connected to database.');
+});
+
 // Methods
 //
 // GET
-var router = express.Router();
-router.get('/', function(req, res) {
-	res.send("Hello world!");
-});
+var tvshows = express.Router();
+
+tvshows.route('/tvshows')
+  .get(TVShowCtrl.findAllTVShows)
+  .post(TVShowCtrl.addTVShow);
+
+tvshows.route('/tvshows/:id')  
+  .get(TVShowCtrl.findById)
+  .put(TVShowCtrl.updateTVShow)
+  .delete(TVShowCtrl.deleteTVShow);
 
 // Main logic
-app.use(router);
+app.use('/api', tvshows);
 
+// Start server
 app.listen(3000, function() {
-	console.log("Node server runing on http:/localhost:3000");
+  console.log("Node server running on http://localhost:3000");
 });
-
